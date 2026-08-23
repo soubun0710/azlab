@@ -1,0 +1,94 @@
+#cloud-config
+write_files:
+  - path: /etc/profile.d/ope-proxy.sh
+    permissions: '0644'
+    owner: root:root
+    content: |
+      export HTTP_PROXY=http://172.16.1.4:3128
+      export HTTPS_PROXY=http://172.16.1.4:3128
+      export http_proxy=http://172.16.1.4:3128
+      export https_proxy=http://172.16.1.4:3128
+      export NO_PROXY=localhost,127.0.0.1,169.254.169.254,azlabjissouopestorage.blob.core.windows.net
+      export no_proxy=localhost,127.0.0.1,169.254.169.254,azlabjissouopestorage.blob.core.windows.net
+
+  - path: /usr/local/sbin/download-ope-packages
+    permissions: '0755'
+    owner: root:root
+    content: |
+      #!/usr/bin/env python3
+      import os
+      import urllib.parse
+      import urllib.request
+      import xml.etree.ElementTree as ET
+
+      STORAGE_ACCOUNT = "azlabjissouopestorage"
+      CONTAINER = "packages"
+      DESTINATION = "/opt/azlab/packages"
+      RESOURCE = "https://storage.azure.com/"
+      BOOTSTRAP_SCRIPT = "bootstrap/install-ope-packages.sh"
+
+      def request(url, token):
+        request = urllib.request.Request(url, headers={
+          "Authorization": "Bearer " + token,
+          "x-ms-version": "2023-11-03",
+        })
+        return urllib.request.urlopen(request)
+
+      metadata_url = (
+        "http://169.254.169.254/metadata/identity/oauth2/token?"
+        + urllib.parse.urlencode({"api-version": "2018-02-01", "resource": RESOURCE})
+      )
+      for attempt in range(12):
+        try:
+          metadata_request = urllib.request.Request(metadata_url, headers={"Metadata": "true"})
+          with urllib.request.urlopen(metadata_request, timeout=10) as response:
+            token = __import__("json").load(response)["access_token"]
+          break
+        except Exception:
+          if attempt == 11:
+            raise
+          import time
+          time.sleep(10)
+
+      os.makedirs(DESTINATION, mode=0o755, exist_ok=True)
+      for attempt in range(12):
+        try:
+          marker = ""
+          while True:
+            query = {"restype": "container", "comp": "list"}
+            if marker:
+              query["marker"] = marker
+            list_url = "https://{}.blob.core.windows.net/{}?{}".format(
+              STORAGE_ACCOUNT, CONTAINER, urllib.parse.urlencode(query)
+            )
+            with request(list_url, token) as response:
+              root = ET.fromstring(response.read())
+            for blob in root.findall(".//Blob"):
+              blob_name = blob.findtext("Name")
+              if not blob_name:
+                continue
+              target = os.path.join(DESTINATION, blob_name)
+              os.makedirs(os.path.dirname(target), mode=0o755, exist_ok=True)
+              blob_url = "https://{}.blob.core.windows.net/{}/{}".format(
+                STORAGE_ACCOUNT, CONTAINER,
+                urllib.parse.quote(blob_name, safe="/")
+              )
+              with request(blob_url, token) as response, open(target, "wb") as output:
+                output.write(response.read())
+            next_marker = root.findtext(".//NextMarker") or ""
+            if not next_marker:
+              break
+            marker = next_marker
+          break
+        except Exception:
+          if attempt == 11:
+            raise
+          import time
+          time.sleep(10)
+
+      bootstrap_script = os.path.join(DESTINATION, BOOTSTRAP_SCRIPT)
+      os.chmod(bootstrap_script, 0o755)
+      os.execv(bootstrap_script, [bootstrap_script])
+
+runcmd:
+  - ["/bin/bash", "-c", "source /etc/profile.d/ope-proxy.sh && /usr/local/sbin/download-ope-packages"]

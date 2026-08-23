@@ -63,6 +63,7 @@
             "name": "azlab-jissou-ap-snet",
             "properties": {
               "addressPrefix": "10.0.1.0/24",
+              "defaultOutboundAccess": false,
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'azlab-jissou-ap-nsg')]"
               }
@@ -72,6 +73,7 @@
             "name": "azlab-jissou-pe-snet",
             "properties": {
               "addressPrefix": "10.0.2.0/24",
+              "defaultOutboundAccess": false,
               "privateEndpointNetworkPolicies": "Disabled",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'azlab-jissou-pe-nsg')]"

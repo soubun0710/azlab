@@ -1,0 +1,136 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "japaneast",
+      "metadata": {
+        "description": "プロキシVMを作成するリージョン"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Linux VMの管理者ユーザー名"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Linux VMの管理者パスワード"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2023-11-01",
+      "name": "azlab-tousei-proxy-pip",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Regional"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "publicIPAddressVersion": "IPv4"
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2023-11-01",
+      "name": "azlab-tousei-proxy-nic",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', 'azlab-tousei-proxy-pip')]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "172.16.1.4",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'azlab-tousei-vnet', 'azlab-tousei-snet')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'azlab-tousei-proxy-pip')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2023-09-01",
+      "name": "azlab-tousei-proxy-vm",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', 'azlab-tousei-proxy-nic')]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "Standard_B2ts_v2"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Standard_LRS"
+            }
+          }
+        },
+        "osProfile": {
+          "computerName": "azlab-proxy",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "customData": "I2Nsb3VkLWNvbmZpZwpwYWNrYWdlX3VwZGF0ZTogdHJ1ZQpwYWNrYWdlczoKICAtIHNxdWlkCgp3cml0ZV9maWxlczoKICAtIHBhdGg6IC9ldGMvc3F1aWQvc3F1aWQuY29uZgogICAgcGVybWlzc2lvbnM6ICcwNjQ0JwogICAgb3duZXI6IHJvb3Q6cm9vdAogICAgY29udGVudDogfAogICAgICBodHRwX3BvcnQgMzEyOAoKICAgICAgYWNsIGppc3NvdV9uZXR3b3JrIHNyYyAxMC4wLjEuMC8yNAogICAgICBhY2wgamlzc291X2FsbG93bGlzdCBkc3Rkb21haW4gZ2l0aHViLmNvbQogICAgICBhY2wgamlzc291X2FsbG93bGlzdCBkc3Rkb21haW4gZ3JhcGgubWljcm9zb2Z0LmNvbQogICAgICBhY2wgamlzc291X2FsbG93bGlzdCBkc3Rkb21haW4gbG9naW4ubWljcm9zb2Z0b25saW5lLmNvbQogICAgICBhY2wgamlzc291X2FsbG93bGlzdCBkc3Rkb21haW4gZnVrdW9rYS1mZy5naGUuY29tCiAgICAgIGFjbCBqaXNzb3VfYWxsb3dsaXN0IGRzdGRvbWFpbiBtYW5hZ2VtZW50LmF6dXJlLmNvbQogICAgICBhY2wgamlzc291X2FsbG93bGlzdCBkc3Rkb21haW4gbWFuYWdlbWVudC5jb3JlLndpbmRvd3MubmV0CiAgICAgIGFjbCBqaXNzb3VfYWxsb3dsaXN0IGRzdGRvbWFpbiByZWdpc3RyeS5ucG1qcy5vcmcKICAgICAgYWNsIGppc3NvdV9hbGxvd2xpc3QgZHN0ZG9tYWluICouYXp1cmV3ZWJzaXRlcy5uZXQKICAgICAgYWNsIGppc3NvdV9hbGxvd2xpc3QgZHN0ZG9tYWluIGFrYS5tcwogICAgICBhY2wgamlzc291X2FsbG93bGlzdCBkc3Rkb21haW4gKi5henVyZWZkLm5ldAogICAgICBhY2wgamlzc291X2FsbG93bGlzdCBkc3Rkb21haW4ganNvbi5zY2hlbWFzdG9yZS5vcmcKICAgICAgYWNsIGppc3NvdV9hbGxvd2xpc3QgZHN0ZG9tYWluICouYXp1cmVlZGdlLm5ldAogICAgICBhY2wgamlzc291X2FsbG93bGlzdCBkc3Rkb21haW4gKi5henVyZXN0YXRpY2FwcHMubmV0CiAgICAgIGFjbCBhbGxvd2VkX2h0dHBfcG9ydHMgcG9ydCA4MAogICAgICBhY2wgYWxsb3dlZF9odHRwc19wb3J0cyBwb3J0IDQ0MwogICAgICBhY2wgQ09OTkVDVCBtZXRob2QgQ09OTkVDVAoKICAgICAgaHR0cF9hY2Nlc3MgYWxsb3cgamlzc291X25ldHdvcmsgamlzc291X2FsbG93bGlzdCBhbGxvd2VkX2h0dHBfcG9ydHMKICAgICAgaHR0cF9hY2Nlc3MgYWxsb3cgamlzc291X25ldHdvcmsgamlzc291X2FsbG93bGlzdCBhbGxvd2VkX2h0dHBzX3BvcnRzIENPTk5FQ1QKICAgICAgaHR0cF9hY2Nlc3MgZGVueSBhbGwKCiAgICAgIGFjY2Vzc19sb2cgL3Zhci9sb2cvc3F1aWQvYWNjZXNzLmxvZwoKcnVuY21kOgogIC0gc3F1aWQgLWsgcGFyc2UKICAtIHN5c3RlbWN0bCBlbmFibGUgc3F1aWQKICAtIHN5c3RlbWN0bCByZXN0YXJ0IHNxdWlkCg==",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": false
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'azlab-tousei-proxy-nic')]",
+              "properties": {
+                "primary": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.DevTestLab/schedules",
+      "apiVersion": "2018-09-15",
+      "name": "shutdown-computevm-azlab-tousei-proxy-vm",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', 'azlab-tousei-proxy-vm')]"
+      ],
+      "properties": {
+        "status": "Enabled",
+        "taskType": "ComputeVmShutdownTask",
+        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', 'azlab-tousei-proxy-vm')]",
+        "dailyRecurrence": {
+          "time": "1200"
+        },
+        "timeZoneId": "Tokyo Standard Time",
+        "notificationSettings": {
+          "status": "Disabled",
+          "timeInMinutes": 30
+        }
+      }
+    }
+  ]
+}
