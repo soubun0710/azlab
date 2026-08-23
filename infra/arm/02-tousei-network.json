@@ -26,7 +26,7 @@
               "direction": "Inbound",
               "protocol": "Tcp",
               "sourcePortRange": "*",
-              "sourceAddressPrefix": "10.0.1.0/24",
+              "sourceAddressPrefix": "10.0.0.0/16",
               "destinationPortRange": "3128",
               "destinationAddressPrefix": "172.16.1.0/24"
             }

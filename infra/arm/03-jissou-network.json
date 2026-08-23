@@ -44,13 +44,37 @@
       }
     },
     {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2023-11-01",
+      "name": "azlab-jissou-func-nsg",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "deny-all-inbound",
+            "properties": {
+              "priority": 100,
+              "access": "Deny",
+              "direction": "Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationPortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          }
+        ]
+      }
+    },
+    {
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2023-11-01",
       "name": "azlab-jissou-vnet",
       "location": "[parameters('location')]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkSecurityGroups', 'azlab-jissou-ap-nsg')]",
-        "[resourceId('Microsoft.Network/networkSecurityGroups', 'azlab-jissou-pe-nsg')]"
+        "[resourceId('Microsoft.Network/networkSecurityGroups', 'azlab-jissou-pe-nsg')]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', 'azlab-jissou-func-nsg')]"
       ],
       "properties": {
         "addressSpace": {
@@ -77,6 +101,24 @@
               "privateEndpointNetworkPolicies": "Disabled",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'azlab-jissou-pe-nsg')]"
+              }
+            }
+          },
+          {
+            "name": "azlab-jissou-func-snet",
+            "properties": {
+              "addressPrefix": "10.0.3.0/26",
+              "defaultOutboundAccess": false,
+              "delegations": [
+                {
+                  "name": "container-apps-delegation",
+                  "properties": {
+                    "serviceName": "Microsoft.App/environments"
+                  }
+                }
+              ],
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'azlab-jissou-func-nsg')]"
               }
             }
           }

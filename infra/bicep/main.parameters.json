@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "eastus2"
+    },
+    "privateEndpointLocation": {
+      "value": "japaneast"
+    },
+    "staticWebAppName": {
+      "value": "azlab-jissou-swa"
+    },
+    "networkResourceGroupName": {
+      "value": "azlab-jissou-network-rg"
+    },
+    "virtualNetworkName": {
+      "value": "azlab-jissou-vnet"
+    },
+    "privateEndpointSubnetName": {
+      "value": "azlab-jissou-pe-snet"
+    },
+    "privateEndpointName": {
+      "value": "azlab-jissou-swa-pe"
+    },
+    "privateDnsZoneName": {
+      "value": "privatelink.azurestaticapps.net"
+    },
+    "tags": {
+      "value": {
+        "environment": "validation",
+        "managedBy": "bicep"
+      }
+    }
+  }
+}

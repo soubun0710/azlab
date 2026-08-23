@@ -1,0 +1,90 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "japaneast",
+      "metadata": {
+        "description": "Key Vault Private Endpointのリージョン"
+      }
+    },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "azlab-jissou-ope-kv",
+      "metadata": {
+        "description": "接続先Key Vault名"
+      },
+      "minLength": 3,
+      "maxLength": 24
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/privateDnsZones",
+      "apiVersion": "2020-06-01",
+      "name": "privatelink.vaultcore.azure.net",
+      "location": "global",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "apiVersion": "2020-06-01",
+      "name": "privatelink.vaultcore.azure.net/azlab-jissou-vnet-link",
+      "location": "global",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.vaultcore.azure.net')]"
+      ],
+      "properties": {
+        "registrationEnabled": false,
+        "virtualNetwork": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/azlab-jissou-network-rg/providers/Microsoft.Network/virtualNetworks/azlab-jissou-vnet')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/privateEndpoints",
+      "apiVersion": "2023-11-01",
+      "name": "azlab-jissou-ope-keyvault-pe",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.vaultcore.azure.net')]"
+      ],
+      "properties": {
+        "subnet": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/azlab-jissou-network-rg/providers/Microsoft.Network/virtualNetworks/azlab-jissou-vnet/subnets/azlab-jissou-pe-snet')]"
+        },
+        "privateLinkServiceConnections": [
+          {
+            "name": "keyvault-connection",
+            "properties": {
+              "privateLinkServiceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+              "groupIds": [
+                "vault"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+      "apiVersion": "2023-11-01",
+      "name": "azlab-jissou-ope-keyvault-pe/default",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateEndpoints', 'azlab-jissou-ope-keyvault-pe')]",
+        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.vaultcore.azure.net')]"
+      ],
+      "properties": {
+        "privateDnsZoneConfigs": [
+          {
+            "name": "keyvault-zone-config",
+            "properties": {
+              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.vaultcore.azure.net')]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

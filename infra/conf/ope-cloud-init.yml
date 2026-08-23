@@ -8,8 +8,8 @@ write_files:
       export HTTPS_PROXY=http://172.16.1.4:3128
       export http_proxy=http://172.16.1.4:3128
       export https_proxy=http://172.16.1.4:3128
-      export NO_PROXY=localhost,127.0.0.1,169.254.169.254,azlabjissouopestorage.blob.core.windows.net
-      export no_proxy=localhost,127.0.0.1,169.254.169.254,azlabjissouopestorage.blob.core.windows.net
+      export NO_PROXY=localhost,127.0.0.1,169.254.169.254,azlabjissouopestorage.blob.core.windows.net,azlab-jissou-ope-kv.vault.azure.net
+      export no_proxy=localhost,127.0.0.1,169.254.169.254,azlabjissouopestorage.blob.core.windows.net,azlab-jissou-ope-kv.vault.azure.net
 
   - path: /usr/local/sbin/download-ope-packages
     permissions: '0755'
