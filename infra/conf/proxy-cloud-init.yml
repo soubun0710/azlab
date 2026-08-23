@@ -18,12 +18,15 @@ write_files:
       acl jissou_allowlist dstdomain management.azure.com
       acl jissou_allowlist dstdomain management.core.windows.net
       acl jissou_allowlist dstdomain registry.npmjs.org
-      acl jissou_allowlist dstdomain *.azurewebsites.net
+      acl jissou_allowlist dstdomain .azurewebsites.net
       acl jissou_allowlist dstdomain aka.ms
-      acl jissou_allowlist dstdomain *.azurefd.net
+      acl jissou_allowlist dstdomain .azurefd.net
       acl jissou_allowlist dstdomain json.schemastore.org
-      acl jissou_allowlist dstdomain *.azureedge.net
-      acl jissou_allowlist dstdomain *.azurestaticapps.net
+      acl jissou_allowlist dstdomain .azureedge.net
+      acl jissou_allowlist dstdomain .azurestaticapps.net
+      acl jissou_allowlist dstdomain .blob.core.windows.net
+      acl jissou_allowlist dstdomain nodejs.org
+      acl jissou_allowlist dstdomain release-assets.githubusercontent.com
       acl allowed_http_ports port 80
       acl allowed_https_ports port 443
       acl CONNECT method CONNECT

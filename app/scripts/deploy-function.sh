@@ -20,7 +20,9 @@ export GITHUB_PAT="$(
 export GIT_ASKPASS=/tmp/azlab-git-askpass
 
 cleanup() {
-  rm -f "$GIT_ASKPASS"
+  if [[ -n "${GIT_ASKPASS:-}" ]]; then
+    rm -f "$GIT_ASKPASS"
+  fi
   unset GIT_ASKPASS GIT_TERMINAL_PROMPT GITHUB_PAT
 }
 trap cleanup EXIT
@@ -39,16 +41,29 @@ export GIT_TERMINAL_PROMPT=0
 rm -rf /work/azlab
 git clone https://github.com/soubun0710/azlab.git /work/azlab
 
-unset GIT_ASKPASS GIT_TERMINAL_PROMPT GITHUB_PAT
+unset GIT_TERMINAL_PROMPT GITHUB_PAT
 
 cd /work/azlab/app/api
 
-zip -r /work/function-app.zip . \
-  -x "node_modules/*" \
-  -x "dist/*"
+npm ci --no-audit --no-fund
+npm run build
+npm prune --omit=dev
 
-az functionapp deployment source config-zip \
+find . -type d -exec chmod 755 {} +
+find . -type f -exec chmod 644 {} +
+
+rm -f /work/function-app.zip
+zip -r /work/function-app.zip . \
+  -x "src/*" \
+  -x "tsconfig.json"
+
+if ! az functionapp deployment source config-zip \
   --resource-group azlab-jissou-ap-rg \
   --name azlab-jissou-func \
   --src /work/function-app.zip \
-  --build-remote true
+  --build-remote false; then
+  printf 'Function deployment failed.\n' >&2
+  exit 1
+fi
+
+printf 'Function deployment completed successfully.\n'
