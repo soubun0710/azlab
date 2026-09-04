@@ -3,7 +3,8 @@
 ## 1. 目的
 
 ネットワーク制約のある環境から、GitHubのソースを取得してビルドし、Azureへデプロイする方式を定義する。
-対象とする処理は、Bicepによるインフラデプロイ、Static Web Appsへのデプロイ、Function AppへのZIPデプロイとする。
+対象とする処理は、初回作成時のBicepによるインフラ適用、Static Web Appsへのデプロイ、Function AppへのZIPデプロイとする。
+作成後のSWA設定変更はBicepで管理せず、Azureポータルから手動で行う。
 
 本構成では、GitHubのIP制限に対応するため、GitHubへの接続をOPE VMから固定IPのプロキシ経由で行う。現環境ではAzure DevOps Pipelineは採用せず、Azure PortalのRun CommandからOPE VM内のスクリプトを実行する。
 
@@ -102,12 +103,12 @@ artifacts/<repository>/<branch>/<commit-id>/<job-id>/
 
 `/tmp`は小規模な検証には利用できるが、本番のビルド領域には使用しない。容量とI/O性能を確保するため、専用データディスクを`/work`へマウントする。
 
-## 6. Bicepデプロイ
+## 6. Bicepの初回適用
 
-Bicepデプロイは、変更内容を確認してから適用する二段階方式とする。
+BicepはSWAなどのインフラを初回作成するときに使用する。初回適用は管理者が手動で実行し、Bicepの適用とアプリケーションデプロイは別の作業として扱う。
 
 ```text
-GitHubから指定ブランチをclone
+管理者が対象ブランチを取得
   ↓
 az bicep build
   ↓
@@ -115,11 +116,11 @@ az deployment group validate
   ↓
 az deployment group what-if
   ↓
-人手承認
+管理者がwhat-ifを確認
   ↓
 az deployment group create
   ↓
-作業領域削除
+az deployment group create
 ```
 
 Azure CLIを使用するため、各ジョブで次を実行する。
@@ -129,7 +130,8 @@ Azure CLIを使用するため、各ジョブで次を実行する。
 timeout 30s az login --identity --allow-no-subscriptions --output none
 ```
 
-`what-if`で想定外の削除（`-`）や変更（`~`）が検出された場合は、承認せずデプロイを停止する。Pipelineでは、What-ifステージとデプロイステージを分離し、Azure DevOps EnvironmentのApprovals and checksで人手承認を要求する。
+`what-if`で想定外の削除（`-`）や変更（`~`）が検出された場合は、初回作成を停止する。内容を確認した管理者が`az deployment group create`を手動実行する。
+作成後のSWA設定変更はBicepで再適用せず、Azureポータルで行う。PipelineによるBicep適用はこの設計の対象外とする。
 
 デプロイモードは原則として`Incremental`を使用する。禁止するリージョン、リソース種別、設定はAzure Policyでも制御する。
 

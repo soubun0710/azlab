@@ -86,7 +86,6 @@ Squidでは、jissou側の許可FQDNを1つのACL `jissou_allowlist` として�
 | `github.com` | Gitリポジトリのclone |
 | `graph.microsoft.com` | Microsoft Graph API |
 | `login.microsoftonline.com` | Microsoft Entra ID認証 |
-| `fukuoka-fg.ghe.com` | GitHub Enterprise |
 | `management.azure.com` | Azure Resource Manager API |
 | `management.core.windows.net` | Azure管理API |
 | `registry.npmjs.org` | npmレジストリ |

@@ -31,6 +31,7 @@ cleanup() {
   if [[ -n "${GIT_ASKPASS:-}" ]]; then
     rm -f "$GIT_ASKPASS"
   fi
+  rm -rf -- /work/azlab
   unset GIT_ASKPASS GIT_TERMINAL_PROMPT GITHUB_PAT SWA_DEPLOYMENT_TOKEN
 }
 trap cleanup EXIT

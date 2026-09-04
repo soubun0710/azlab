@@ -7,7 +7,7 @@ param networkResourceGroupName string = 'azlab-jissou-network-rg'
 param virtualNetworkName string = 'azlab-jissou-vnet'
 param privateEndpointSubnetName string = 'azlab-jissou-pe-snet'
 param privateEndpointName string = '${staticWebAppName}-pe'
-param privateDnsZoneName string = 'privatelink.azurestaticapps.net'
+param privateDnsZoneName string = 'privatelink.7.azurestaticapps.net'
 param tags object = {}
 
 module staticWebApp './static-web-app.bicep' = {

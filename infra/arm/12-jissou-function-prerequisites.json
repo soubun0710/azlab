@@ -55,7 +55,7 @@
         "defaultToOAuthAuthentication": true,
         "minimumTlsVersion": "TLS1_2",
         "supportsHttpsTrafficOnly": true,
-        "publicNetworkAccess": "Enabled"
+        "publicNetworkAccess": "Disabled"
       }
     },
     {

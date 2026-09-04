@@ -10,7 +10,12 @@
   <main>
     <p class="eyebrow">AZLAB</p>
     <h1>Frontend connected.</h1>
+    <nav aria-label="認証">
+      <a href="/.auth/login/aad">Entra IDでログイン</a>
+      <a href="/.auth/logout">ログアウト</a>
+    </nav>
     <p id="status">Function APIへ接続しています...</p>
+    <pre id="user" aria-live="polite"></pre>
     <pre id="result" aria-live="polite"></pre>
   </main>
   <script src="app.js"></script>

@@ -1,5 +1,26 @@
 {
+  "auth": {
+    "rolesSource": "/api/getroles",
+    "identityProviders": {
+      "azureActiveDirectory": {
+        "registration": {
+          "openIdIssuer": "https://login.microsoftonline.com/98493276-674d-4550-a5d7-552205bd2432/v2.0",
+          "clientIdSettingName": "ENTRA_CLIENT_ID",
+          "clientSecretSettingName": "ENTRA_CLIENT_SECRET"
+        },
+        "login": {
+          "loginParameters": [
+            "scope=https://graph.microsoft.com/User.Read.All"
+          ]
+        }
+      }
+    }
+  },
   "routes": [
+    {
+      "route": "/api/me",
+      "allowedRoles": ["authenticated"]
+    },
     {
       "route": "/api/*",
       "allowedRoles": ["anonymous"]

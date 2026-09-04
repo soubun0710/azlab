@@ -23,6 +23,8 @@ cleanup() {
   if [[ -n "${GIT_ASKPASS:-}" ]]; then
     rm -f "$GIT_ASKPASS"
   fi
+  rm -rf -- /work/azlab
+  rm -f -- /work/function-app.zip
   unset GIT_ASKPASS GIT_TERMINAL_PROMPT GITHUB_PAT
 }
 trap cleanup EXIT
@@ -55,7 +57,8 @@ find . -type f -exec chmod 644 {} +
 rm -f /work/function-app.zip
 zip -r /work/function-app.zip . \
   -x "src/*" \
-  -x "tsconfig.json"
+  -x "tsconfig.json" \
+  -x ".git/*"
 
 if ! az functionapp deployment source config-zip \
   --resource-group azlab-jissou-ap-rg \

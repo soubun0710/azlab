@@ -1,0 +1,81 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "japaneast",
+      "metadata": {
+        "description": "AP用Key Vaultのリージョン"
+      }
+    },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "azlab-jissou-ap-kv",
+      "metadata": {
+        "description": "Functionのシークレット参照先となるKey Vault名"
+      },
+      "minLength": 3,
+      "maxLength": 24
+    },
+    "userObjectId": {
+      "type": "string",
+      "defaultValue": "2ba24c65-b970-4fad-86cb-a6f73b5c2883",
+      "metadata": {
+        "description": "Key Vaultシークレットを管理するユーザーのオブジェクトID"
+      }
+    }
+  },
+  "variables": {
+    "keyVaultSecretsOfficerRoleDefinitionId": "b86a8fe4-44ce-4948-aee5-eccb2c155cd7"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2023-07-01",
+      "name": "[parameters('keyVaultName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "tenantId": "[subscription().tenantId]",
+        "sku": {
+          "family": "A",
+          "name": "standard"
+        },
+        "enableRbacAuthorization": true,
+        "enableSoftDelete": true,
+        "softDeleteRetentionInDays": 90,
+        "publicNetworkAccess": "Enabled",
+        "networkAcls": {
+          "defaultAction": "Allow",
+          "bypass": "AzureServices",
+          "ipRules": [],
+          "virtualNetworkRules": []
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), parameters('userObjectId'), variables('keyVaultSecretsOfficerRoleDefinitionId'))]",
+      "scope": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('keyVaultSecretsOfficerRoleDefinitionId'))]",
+        "principalId": "[parameters('userObjectId')]",
+        "principalType": "User"
+      }
+    }
+  ],
+  "outputs": {
+    "keyVaultName": {
+      "type": "string",
+      "value": "[parameters('keyVaultName')]"
+    },
+    "keyVaultId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+    }
+  }
+}

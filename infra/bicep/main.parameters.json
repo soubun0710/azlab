@@ -24,7 +24,7 @@
       "value": "azlab-jissou-swa-pe"
     },
     "privateDnsZoneName": {
-      "value": "privatelink.azurestaticapps.net"
+      "value": "privatelink.7.azurestaticapps.net"
     },
     "tags": {
       "value": {

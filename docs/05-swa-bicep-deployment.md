@@ -1,10 +1,10 @@
-# Static Web Apps Bicepデプロイ手順
+# Static Web Apps Bicep初回作成手順
 
 ## 1. 目的
 
-会社で実際に発生した構成を再現するため、公開Cloud ShellからStatic Web Apps（SWA）本体、SWA用Private Endpoint、およびPrivate DNSをBicepで作成する。
+Static Web Apps（SWA）本体、SWA用Private Endpoint、およびPrivate DNSを、初回作成時にBicepで作成する。その後のSWA設定変更はBicepで管理せず、Azureポータルから手動で行う。
 
-会社では公開Cloud Shellの利用が禁止されているが、当時はその統制を把握しておらず、SWA関連リソースだけを公開Cloud Shellから作成していた。この手順は、会社の推奨手順ではなく、その状態を検証環境で再現するためのものである。
+SWAの認証設定やアプリケーション設定は、このBicep適用には含めない。リソース作成後にAzureポータルで設定する。
 
 ## 2. 使用するファイル
 
@@ -53,7 +53,8 @@ az version --query '"azure-cli"' --output tsv
 
 ## 4. デプロイ順序
 
-`main.bicep`を1回適用し、SWA本体とPrivate Endpointをまとめて作成する。内部ではSWA本体を先に作成し、その完了後にPrivate Endpointを作成する。
+`main.bicep`を初回作成時に管理者が適用し、SWA本体とPrivate Endpointをまとめて作成する。内部ではSWA本体を先に作成し、その完了後にPrivate Endpointを作成する。
+初回作成後のSWA設定変更はBicepを再適用せず、Azureポータルで手動変更する。
 
 ```text
 main.bicep
