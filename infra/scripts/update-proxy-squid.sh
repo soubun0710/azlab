@@ -21,7 +21,7 @@ fi
 cat > "${config_file}" <<'SQUID_CONFIG'
 http_port 3128
 
-acl jissou_network src 10.0.1.0/24
+acl jissou_network src 10.0.0.0/16
 acl jissou_denylist dstdomain identity.7.azurestaticapps.net
 acl jissou_allowlist dstdomain github.com
 acl jissou_allowlist dstdomain graph.microsoft.com
