@@ -2,7 +2,7 @@
   "name": "azlab-jissou-func",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/src/functions/*.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\""
