@@ -277,3 +277,8 @@ VNet統合だけでは通信が自動的にプロキシ経由にはならない�
 - ZIPをFunction Appへアップロードできる
 - ZIPデプロイ後にFunctionが起動する
 - 秘密情報がARMテンプレート、ZIP、ログへ出力されていない
+
+### Function Appの外向き通信
+
+Function Appは、SWAのLinked Backend認証処理に伴い`identity.7.azurestaticapps.net`へインターネット通信する。
+VNet統合やProxyで外向き通信を制約する場合は、このFQDNを許可する必要がある。

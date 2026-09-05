@@ -22,7 +22,6 @@ cat > "${config_file}" <<'SQUID_CONFIG'
 http_port 3128
 
 acl jissou_network src 10.0.0.0/16
-acl jissou_denylist dstdomain identity.7.azurestaticapps.net
 acl jissou_allowlist dstdomain github.com
 acl jissou_allowlist dstdomain graph.microsoft.com
 acl jissou_allowlist dstdomain login.microsoftonline.com
@@ -42,7 +41,6 @@ acl allowed_http_ports port 80
 acl allowed_https_ports port 443
 acl CONNECT method CONNECT
 
-http_access deny jissou_network jissou_denylist
 http_access allow jissou_network jissou_allowlist allowed_http_ports
 http_access allow jissou_network jissou_allowlist allowed_https_ports CONNECT
 http_access deny all
