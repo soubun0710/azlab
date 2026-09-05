@@ -51,7 +51,7 @@ export async function getRoles(request: HttpRequest, context: InvocationContext)
 
   return {
     jsonBody: {
-      roles: []
+      roles: ['authenticated']
     }
   };
 }

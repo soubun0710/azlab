@@ -30,7 +30,7 @@ async function getRoles(request, context) {
     context.log(`Microsoft Graph user lookup succeeded for ${user.id ?? objectId}.`);
     return {
         jsonBody: {
-            roles: []
+            roles: ['authenticated']
         }
     };
 }
