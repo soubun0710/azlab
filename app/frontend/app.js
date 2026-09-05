@@ -13,9 +13,16 @@ async function loadAuthenticationState() {
   }
 
   const meResponse = await fetch('/api/me');
-  const meData = await meResponse.json();
+  const meBody = await meResponse.text();
   if (!meResponse.ok) {
-    throw new Error(`User API returned ${meResponse.status}`);
+    throw new Error(`User API returned ${meResponse.status}: ${meBody || 'empty response'}`);
+  }
+
+  let meData;
+  try {
+    meData = JSON.parse(meBody);
+  } catch {
+    throw new Error(`User API returned invalid JSON: ${meBody || 'empty response'}`);
   }
 
   status.textContent = 'SWA認証とFunctionへのユーザー情報連携に成功しました。';
