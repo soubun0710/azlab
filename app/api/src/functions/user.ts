@@ -17,12 +17,13 @@ export async function user(request: HttpRequest, context: InvocationContext): Pr
     };
   }
 
-  const token = request.headers.get('x-ms-token-aad-access-token');
+  const authorization = request.headers.get('authorization');
+  const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
 
   if (!token) {
     return {
       status: 401,
-      jsonBody: { error: 'A Microsoft Entra access token is required.' }
+      jsonBody: { error: 'A Microsoft Graph access token is required.' }
     };
   }
 

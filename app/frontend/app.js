@@ -3,6 +3,41 @@ const user = document.querySelector('#user');
 const userSearch = document.querySelector('#user-search');
 const username = document.querySelector('#username');
 const result = document.querySelector('#result');
+const graphScopes = ['https://graph.microsoft.com/User.Read.All'];
+const msalInstance = new msal.PublicClientApplication({
+  auth: {
+    clientId: '7dea1e23-c64e-4b20-a5d5-dfe01eb0cca0',
+    authority: 'https://login.microsoftonline.com/98493276-674d-4550-a5d7-552205bd2432',
+    redirectUri: window.location.origin
+  },
+  cache: {
+    cacheLocation: 'sessionStorage'
+  }
+});
+
+async function getGraphAccessToken() {
+  let account = msalInstance.getAllAccounts()[0];
+
+  if (!account) {
+    const loginResult = await msalInstance.loginPopup({ scopes: graphScopes });
+    account = loginResult.account;
+  }
+
+  try {
+    const tokenResult = await msalInstance.acquireTokenSilent({
+      account,
+      scopes: graphScopes
+    });
+    return tokenResult.accessToken;
+  } catch (error) {
+    if (error instanceof msal.InteractionRequiredAuthError) {
+      const tokenResult = await msalInstance.acquireTokenPopup({ scopes: graphScopes });
+      return tokenResult.accessToken;
+    }
+
+    throw error;
+  }
+}
 
 async function loadAuthenticationState() {
   const authResponse = await fetch('/.auth/me');
@@ -43,7 +78,12 @@ userSearch.addEventListener('submit', async (event) => {
   result.textContent = 'Graphで検索しています...';
 
   try {
-    const response = await fetch(`/api/user?username=${encodeURIComponent(value)}`);
+    const graphAccessToken = await getGraphAccessToken();
+    const response = await fetch(`/api/user?username=${encodeURIComponent(value)}`, {
+      headers: {
+        Authorization: `Bearer ${graphAccessToken}`
+      }
+    });
     const body = await response.text();
 
     if (!response.ok) {
