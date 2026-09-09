@@ -6,7 +6,7 @@ const result = document.querySelector('#result');
 const graphScopes = ['https://graph.microsoft.com/User.Read.All'];
 const msalInstance = new msal.PublicClientApplication({
   auth: {
-    clientId: '7dea1e23-c64e-4b20-a5d5-dfe01eb0cca0',
+    clientId: '7dea1e23-c64e-4b20-afd5-dfe01eb0cca0',
     authority: 'https://login.microsoftonline.com/98493276-674d-4550-a5d7-552205bd2432',
     redirectUri: window.location.origin
   },
