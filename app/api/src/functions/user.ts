@@ -1,8 +1,8 @@
-import { DefaultAzureCredential } from '@azure/identity';
+import { OnBehalfOfCredential } from '@azure/identity';
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 
-const credential = new DefaultAzureCredential();
 const graphScope = 'https://graph.microsoft.com/.default';
+const tenantId = '98493276-674d-4550-a5d7-552205bd2432';
 
 type GraphUser = {
   id?: string;
@@ -21,11 +21,38 @@ export async function user(request: HttpRequest, context: InvocationContext): Pr
     };
   }
 
-  try {
-    const accessToken = await credential.getToken(graphScope);
+  const authorization = request.headers.get('authorization');
+  const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
 
-    if (!accessToken) {
-      context.error('Microsoft Graph access token was not returned.');
+  if (!token) {
+    return {
+      status: 401,
+      jsonBody: { error: 'A delegated Microsoft Graph access token is required.' }
+    };
+  }
+
+  try {
+    const clientId = process.env.ENTRA_CLIENT_ID;
+    const clientSecret = process.env.ENTRA_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      context.error('OBO configuration is incomplete.');
+      return {
+        status: 500,
+        jsonBody: { error: 'The Function OBO configuration is incomplete.' }
+      };
+    }
+
+    const credential = new OnBehalfOfCredential({
+      tenantId,
+      clientId,
+      clientSecret,
+      userAssertionToken: token
+    });
+    const graphAccessToken = await credential.getToken(graphScope);
+
+    if (!graphAccessToken) {
+      context.error('Microsoft Graph access token was not returned by the OBO flow.');
       return {
         status: 502,
         jsonBody: { error: 'Failed to acquire a Microsoft Graph access token.' }
@@ -36,7 +63,7 @@ export async function user(request: HttpRequest, context: InvocationContext): Pr
       `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(username)}?$select=id,displayName,userPrincipalName,mail`,
       {
         headers: {
-          Authorization: `Bearer ${accessToken.token}`
+          Authorization: `Bearer ${graphAccessToken.token}`
         }
       }
     );

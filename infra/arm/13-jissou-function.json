@@ -148,6 +148,14 @@
             {
               "name": "TEST_SECRET",
               "value": "[format('@Microsoft.KeyVault(SecretUri=https://{0}.vault.azure.net/secrets/{1})', parameters('keyVaultName'), parameters('secretName'))]"
+            },
+            {
+              "name": "ENTRA_CLIENT_ID",
+              "value": "7dea1e23-c64e-4b20-a5d5-dfe01eb0cca0"
+            },
+            {
+              "name": "ENTRA_CLIENT_SECRET",
+              "value": "@Microsoft.KeyVault(SecretUri=https://azlab-jissou-ap-kv.vault.azure.net/secrets/entra-client-secret)"
             }
           ]
         }

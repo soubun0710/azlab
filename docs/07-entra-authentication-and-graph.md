@@ -36,7 +36,7 @@ Microsoft Graph API
 | Function App | `azlab-jissou-func` |
 | Function API | `/api/hello` |
 | SWA APIバックエンド | `azlab-jissou-func` |
-| Graph権限 | Delegated `User.Read.All`、Function Managed IdentityのApplication `User.Read.All` |
+| Graph権限 | Delegated `User.Read.All` |
 | 認証テナント | 使用するMicrosoft Entraテナント |
 
 ## 3. Entra IDアプリ登録
@@ -179,7 +179,18 @@ GET /api/user?username=user@example.com
 }
 ```
 
-このAPIはSWAで認証済みユーザーだけに許可する。FunctionはSystem Assigned Managed Identityで`https://graph.microsoft.com/.default`のトークンを取得し、Microsoft GraphのApplication permission `User.Read.All`を使用する。Entra IDでFunction AppのManaged IdentityにMicrosoft GraphのApplication `User.Read.All`を付与し、管理者同意を行う必要がある。既存のSWA用アプリ登録に設定したDelegated permissionだけでは、この通常のAPI呼び出しは実行できない。
+このAPIはSWAで認証済みユーザーだけに許可する。
+フロントエンドはFunction API向けに取得したDelegatedアクセストークンを`Authorization: Bearer`ヘッダーでFunctionへ渡す。
+Functionは受け取ったユーザートークンをOBO（On-Behalf-Of）フローでMicrosoft Graph向けアクセストークンへ交換し、交換後のトークンでGraphを呼び出す。
+
+Function Appには次のアプリ設定が必要である。
+
+```text
+ENTRA_CLIENT_ID
+ENTRA_CLIENT_SECRET
+```
+
+`ENTRA_CLIENT_SECRET`はソースコードやARMテンプレートへ直接記載せず、Key Vault参照などで設定する。また、受信トークンのaudienceはGraphではなくFunction APIのアプリ登録でなければならない。Graph向けトークンをそのままOBOの入力には使用しない。
 
 ## 7. プロキシ通信
 
