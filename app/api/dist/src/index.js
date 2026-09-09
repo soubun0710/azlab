@@ -4,3 +4,4 @@ require("./functions/hello");
 require("./functions/me");
 require("./functions/getRoles");
 require("./functions/user");
+require("./functions/debugAuth");

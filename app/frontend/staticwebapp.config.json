@@ -26,6 +26,10 @@
       "allowedRoles": ["authenticated"]
     },
     {
+      "route": "/api/debug-auth",
+      "allowedRoles": ["authenticated"]
+    },
+    {
       "route": "/api/*",
       "allowedRoles": ["anonymous"]
     }
