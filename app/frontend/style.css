@@ -21,6 +21,24 @@ nav {
   margin-bottom: 16px;
 }
 
+form {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+input,
+button {
+  box-sizing: border-box;
+  max-width: 420px;
+  padding: 8px;
+  font: inherit;
+}
+
+button {
+  width: fit-content;
+}
+
 pre {
   margin: 8px 0 0;
   overflow: auto;

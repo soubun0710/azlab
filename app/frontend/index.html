@@ -15,8 +15,14 @@
     </nav>
     <p id="status">Function APIへ接続しています...</p>
     <pre id="user" aria-live="polite"></pre>
+    <form id="user-search-form">
+      <label for="username">ユーザー名またはメールアドレス</label>
+      <input id="username" name="username" type="text" required>
+      <button type="submit">ユーザー検索</button>
+    </form>
     <pre id="result" aria-live="polite"></pre>
   </main>
+  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
