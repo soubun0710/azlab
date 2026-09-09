@@ -1,45 +1,8 @@
 const status = document.querySelector('#status');
 const user = document.querySelector('#user');
+const userSearch = document.querySelector('#user-search');
+const username = document.querySelector('#username');
 const result = document.querySelector('#result');
-const searchForm = document.querySelector('#user-search-form');
-
-const tenantId = '98493276-674d-4550-a5d7-552205bd2432';
-const clientId = '7dea1e23-c64e-4b20-a5d5-dfe01eb0cca0';
-const apiScope = `api://${clientId}/user_impersonation`;
-const msalInstance = new msal.PublicClientApplication({
-  auth: {
-    clientId,
-    authority: `https://login.microsoftonline.com/${tenantId}`,
-    redirectUri: window.location.origin
-  },
-  cache: {
-    cacheLocation: 'sessionStorage'
-  }
-});
-
-async function getApiAccessToken() {
-  let account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
-
-  if (!account) {
-    const loginResult = await msalInstance.loginPopup({ scopes: [apiScope] });
-    account = loginResult.account;
-    msalInstance.setActiveAccount(account);
-  }
-
-  try {
-    const tokenResult = await msalInstance.acquireTokenSilent({
-      account,
-      scopes: [apiScope]
-    });
-    return tokenResult.accessToken;
-  } catch {
-    const tokenResult = await msalInstance.acquireTokenPopup({
-      account,
-      scopes: [apiScope]
-    });
-    return tokenResult.accessToken;
-  }
-}
 
 async function loadAuthenticationState() {
   const authResponse = await fetch('/.auth/me');
@@ -65,33 +28,30 @@ async function loadAuthenticationState() {
   }
 
   status.textContent = 'SWA認証とFunctionへのユーザー情報連携に成功しました。';
+  userSearch.hidden = false;
   result.textContent = JSON.stringify(meData, null, 2);
 }
 
-searchForm.addEventListener('submit', async (event) => {
+userSearch.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const username = new FormData(searchForm).get('username').trim();
+  const value = username.value.trim();
 
-  status.textContent = 'Graphアクセストークンを取得しています...';
-  result.textContent = '';
+  if (!value) {
+    return;
+  }
+
+  result.textContent = 'Graphで検索しています...';
 
   try {
-    const accessToken = await getApiAccessToken();
-    const response = await fetch(`/api/user?username=${encodeURIComponent(username)}`, {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${accessToken}`
-      }
-    });
+    const response = await fetch(`/api/user?username=${encodeURIComponent(value)}`);
     const body = await response.text();
+
     if (!response.ok) {
-      throw new Error(`User search returned ${response.status}: ${body || 'empty response'}`);
+      throw new Error(`Graph user lookup returned ${response.status}: ${body || 'empty response'}`);
     }
 
     result.textContent = JSON.stringify(JSON.parse(body), null, 2);
-    status.textContent = 'ユーザー検索に成功しました。';
   } catch (error) {
-    status.textContent = 'ユーザー検索に失敗しました。';
     result.textContent = error instanceof Error ? error.message : String(error);
   }
 });

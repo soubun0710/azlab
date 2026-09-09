@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.user = user;
 const functions_1 = require("@azure/functions");
-const graphScope = 'https://graph.microsoft.com/.default';
-const tenantId = '98493276-674d-4550-a5d7-552205bd2432';
 async function user(request, context) {
     const username = request.query.get('username')?.trim();
     if (!username) {
@@ -12,42 +10,17 @@ async function user(request, context) {
             jsonBody: { error: 'The username query parameter is required.' }
         };
     }
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
+    const token = request.headers.get('x-ms-token-aad-access-token');
     if (!token) {
         return {
             status: 401,
-            jsonBody: { error: 'A delegated Microsoft Graph access token is required.' }
+            jsonBody: { error: 'A Microsoft Entra access token is required.' }
         };
     }
     try {
-        const { OnBehalfOfCredential } = await import('@azure/identity');
-        const clientId = process.env.ENTRA_CLIENT_ID;
-        const clientSecret = process.env.ENTRA_CLIENT_SECRET;
-        if (!clientId || !clientSecret) {
-            context.error('OBO configuration is incomplete.');
-            return {
-                status: 500,
-                jsonBody: { error: 'The Function OBO configuration is incomplete.' }
-            };
-        }
-        const credential = new OnBehalfOfCredential({
-            tenantId,
-            clientId,
-            clientSecret,
-            userAssertionToken: token
-        });
-        const graphAccessToken = await credential.getToken(graphScope);
-        if (!graphAccessToken) {
-            context.error('Microsoft Graph access token was not returned by the OBO flow.');
-            return {
-                status: 502,
-                jsonBody: { error: 'Failed to acquire a Microsoft Graph access token.' }
-            };
-        }
         const graphResponse = await fetch(`https://graph.microsoft.com/v1.0/users/${encodeURIComponent(username)}?$select=id,displayName,userPrincipalName,mail`, {
             headers: {
-                Authorization: `Bearer ${graphAccessToken.token}`
+                Authorization: `Bearer ${token}`
             }
         });
         if (graphResponse.status === 404) {
