@@ -1,4 +1,3 @@
-import { OnBehalfOfCredential } from '@azure/identity';
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
 
 const graphScope = 'https://graph.microsoft.com/.default';
@@ -32,6 +31,7 @@ export async function user(request: HttpRequest, context: InvocationContext): Pr
   }
 
   try {
+    const { OnBehalfOfCredential } = await import('@azure/identity');
     const clientId = process.env.ENTRA_CLIENT_ID;
     const clientSecret = process.env.ENTRA_CLIENT_SECRET;
 

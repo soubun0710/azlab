@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.user = user;
-const identity_1 = require("@azure/identity");
 const functions_1 = require("@azure/functions");
 const graphScope = 'https://graph.microsoft.com/.default';
 const tenantId = '98493276-674d-4550-a5d7-552205bd2432';
@@ -22,6 +21,7 @@ async function user(request, context) {
         };
     }
     try {
+        const { OnBehalfOfCredential } = await import('@azure/identity');
         const clientId = process.env.ENTRA_CLIENT_ID;
         const clientSecret = process.env.ENTRA_CLIENT_SECRET;
         if (!clientId || !clientSecret) {
@@ -31,7 +31,7 @@ async function user(request, context) {
                 jsonBody: { error: 'The Function OBO configuration is incomplete.' }
             };
         }
-        const credential = new identity_1.OnBehalfOfCredential({
+        const credential = new OnBehalfOfCredential({
             tenantId,
             clientId,
             clientSecret,
