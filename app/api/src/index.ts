@@ -1,3 +1,4 @@
 import './functions/hello';
 import './functions/me';
-import './functions/getroles';
+import './functions/getRoles';
+import './functions/user';

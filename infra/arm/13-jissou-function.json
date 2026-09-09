@@ -143,7 +143,7 @@
             },
             {
               "name": "NO_PROXY",
-              "value": "169.254.169.254,169.254.255.2,localhost,127.0.0.1,azlabjissoufuncst.blob.core.windows.net"
+              "value": "169.254.169.254,169.254.255.2,localhost,127.0.0.1,azlabjissoufuncst.blob.core.windows.net,japaneast-1.in.applicationinsights.azure.com,japaneast.livediagnostics.monitor.azure.com"
             },
             {
               "name": "TEST_SECRET",

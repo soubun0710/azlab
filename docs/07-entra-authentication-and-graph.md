@@ -8,6 +8,7 @@ Azure Static Web Apps（SWA）のカスタム組み込み認証と、Microsoft G
 - SWAのログイン済みユーザーだけがSWAのAPIを呼び出せる
 - SWAとLinked Backendで接続したFunction Appへリクエストを転送する
 - Function AppからMicrosoft Graph APIを呼び出す
+- ユーザー名を指定して組織内ユーザーの情報を取得する
 - Function AppのApp Service Authenticationを有効化した状態で、SWAからFunctionへ到達できることを確認する
 
 ## 2. 構成
@@ -35,7 +36,7 @@ Microsoft Graph API
 | Function App | `azlab-jissou-func` |
 | Function API | `/api/hello` |
 | SWA APIバックエンド | `azlab-jissou-func` |
-| Graph権限 | Delegated `User.Read.All`（管理者同意済み） |
+| Graph権限 | Delegated `User.Read.All`、Function Managed IdentityのApplication `User.Read.All` |
 | 認証テナント | 使用するMicrosoft Entraテナント |
 
 ## 3. Entra IDアプリ登録
@@ -145,19 +146,40 @@ Unauthenticated requests: HTTP 401
 
 ## 6. Graph APIの呼び出し方式
 
-SWAのカスタム認証に`rolesSource`として`/api/getroles`を設定し、ログイン完了時にSWAから`getroles` Functionを呼び出す。`getroles` Functionはリクエスト本文に含まれるユーザーの委任アクセストークンを使用してMicrosoft Graphを呼び出す。
+SWAのカスタム認証に`rolesSource`として`/api/getRoles`を設定し、ログイン完了時にSWAから`getRoles` Functionを呼び出す。`getRoles` Functionはリクエスト本文に含まれるユーザーの委任アクセストークンを使用してMicrosoft Graphを呼び出す。
 
 ```text
 ブラウザ
   ↓ Entra IDでログイン
 SWA
   ↓ rolesSource POST（accessTokenを含む）
-getroles Function
+getRoles Function
   ↓ Authorization: Bearer <accessToken>
 Microsoft Graph
 ```
 
 この方式のGraph呼び出しは、サインインしたユーザーの委任権限に基づいて実行される。通常の`/api/me`へはGraphアクセストークンを転送せず、SWAが`rolesSource` Functionへ渡すトークンだけをGraph呼び出しに使用する。FunctionのClient IDやClient SecretはこのDelegatedフローでは使用しない。
+
+## 6.1 ユーザー検索API
+
+ログイン済みユーザーがユーザー名を指定して、組織内の別ユーザー情報を取得できるAPIを提供する。
+
+```text
+GET /api/user?username=user@example.com
+```
+
+`username` には Microsoft Graph のユーザーIDまたはユーザープリンシパル名を指定する。APIは次の項目だけを返し、アクセストークンはレスポンスやログへ出力しない。
+
+```json
+{
+  "id": "ユーザーID",
+  "displayName": "表示名",
+  "userPrincipalName": "ユーザープリンシパル名",
+  "mail": "メールアドレス"
+}
+```
+
+このAPIはSWAで認証済みユーザーだけに許可する。FunctionはSystem Assigned Managed Identityで`https://graph.microsoft.com/.default`のトークンを取得し、Microsoft GraphのApplication permission `User.Read.All`を使用する。Entra IDでFunction AppのManaged IdentityにMicrosoft GraphのApplication `User.Read.All`を付与し、管理者同意を行う必要がある。既存のSWA用アプリ登録に設定したDelegated permissionだけでは、この通常のAPI呼び出しは実行できない。
 
 ## 7. プロキシ通信
 
@@ -194,7 +216,7 @@ Entra IDのトークン取得とGraph API呼び出しはHTTPSを使用するた�
 9. 認証なしのFunction直URLが401になることを確認する
 10. Delegated `User.Read.All`に管理者同意が付与され、`User.Read`が設定されていないことを確認する
 11. Implicit grant and hybrid flowsでアクセストークンとIDトークンが有効になっていることを確認する
-12. ログイン時に`getroles` Functionが呼び出され、委任アクセストークンでGraph APIを呼び出せることを確認する
+12. ログイン時に`getRoles` Functionが呼び出され、委任アクセストークンでGraph APIを呼び出せることを確認する
 13. GraphへのHTTPS通信がプロキシを通ることを確認する
 
 ## 9. 動作確認
@@ -239,7 +261,7 @@ Graph APIの検証では、FunctionからGraph APIを呼び出して結果を確
 | Function直URL（認証なし） | `401 Unauthorized` |
 | SWA `/api/hello` | `200 OK`、Functionログが出る |
 | 偽造SWAヘッダー | Functionコードに到達せず401 |
-| Graph呼び出し | `getroles` Functionが委任アクセストークンでGraph APIを呼び出せる | 
+| Graph呼び出し | `getRoles` Functionが委任アクセストークンでGraph APIを呼び出せる | 
 | Graph権限不足 | Graphが適切な権限エラーを返す |
 | プロキシ | Squidログに `graph.microsoft.com` と `login.microsoftonline.com` が記録される |
 

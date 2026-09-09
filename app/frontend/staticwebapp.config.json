@@ -1,6 +1,6 @@
 {
   "auth": {
-    "rolesSource": "/api/getroles",
+    "rolesSource": "/api/getRoles",
     "identityProviders": {
       "azureActiveDirectory": {
         "registration": {
@@ -19,6 +19,10 @@
   "routes": [
     {
       "route": "/api/me",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/user",
       "allowedRoles": ["authenticated"]
     },
     {

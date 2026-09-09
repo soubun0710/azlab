@@ -8,7 +8,8 @@
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\""
   },
   "dependencies": {
-    "@azure/functions": "^4.7.2"
+    "@azure/functions": "^4.7.2",
+    "@azure/identity": "^4.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
