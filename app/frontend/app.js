@@ -8,7 +8,7 @@ const msalInstance = new msal.PublicClientApplication({
   auth: {
     clientId: '7dea1e23-c64e-4b20-afd5-dfe01eb0cca0',
     authority: 'https://login.microsoftonline.com/98493276-674d-4550-a5d7-552205bd2432',
-    redirectUri: window.location.origin
+    redirectUri: `${window.location.origin}/`
   },
   cache: {
     cacheLocation: 'sessionStorage'
